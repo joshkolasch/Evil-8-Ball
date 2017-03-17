@@ -80,7 +80,9 @@
         app:layout_constraintLeft_toLeftOf="@+id/imageViewBlueInside"
         app:layout_constraintRight_toRightOf="@+id/imageViewBlueInside"
         android:textColor="@color/colorAccent"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
 
     <TextView
         tools:text="Strictly No"
@@ -92,6 +94,8 @@
         app:layout_constraintLeft_toLeftOf="@+id/imageViewBlueInside"
         app:layout_constraintRight_toRightOf="@+id/imageViewBlueInside"
         android:textColor="@color/colorAccent"
-        android:textAlignment="center"/>
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:textStyle="bold"/>
 
 </android.support.constraint.ConstraintLayout>

@@ -33,6 +33,7 @@ https://code.tutsplus.com/tutorials/using-the-accelerometer-on-android--mobile-2
 using spannableStrings to make the text appear effects
 http://androidcocktail.blogspot.com/2014/03/android-spannablestring-example.html
 
+Note: Handlers were replaced with a fade_in_text_even.xml with a startOffset
 setting up a delay for a function using Handlers
 http://stackoverflow.com/questions/4111905/how-do-you-have-the-code-pause-for-a-couple-of-seconds-in-android
 
@@ -84,6 +85,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
 
     //TODO (1) Abstract this function away. Have the imageView call another function that will call this.
+    //Consider removing the imageView instance and pass it in from an earlier function
     //OnClick component set up in activity_main.xml
     public void fadeOutImage(View view){
         ImageView image = (ImageView) findViewById(R.id.imageViewCenterEight);
@@ -109,6 +111,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         for(int i = 0; i < evenString.length(); i++){
             if(i%2 == 0) {
+                //TODO (5) should the last value in this function be Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 evenString.setSpan(new ForegroundColorSpan(Color.argb(0, 0, 0, 0)), i, i+1, 0);
             }
         }
