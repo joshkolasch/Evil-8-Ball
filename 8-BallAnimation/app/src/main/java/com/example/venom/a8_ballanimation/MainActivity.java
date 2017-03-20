@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static long time_last_shaken;
     private static final int SHAKE_TIME_DIFFERENTIAL = 3000;
 
+    //TODO (12) create variables for the imageViews - they're used repeatedly in the activity
+
     //TODO (4) create a Contract class to populate this array from a database?
     private final String[] phrases = new String[]{"That's not gonna fuckin happen.", "Fuck if i know", "Shit happens", "Suck it up buttercup", "For fucks sake, yes!"};
 
@@ -81,6 +83,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mOddTextView = (TextView) findViewById(R.id.textViewCenterOdd);
         mEvenTextView.setVisibility(View.INVISIBLE);
         mOddTextView.setVisibility(View.INVISIBLE);
+
+        //TODO (13) instantiate imageView variables for future use
 
         //this ensures the user won't be delayed the first time they fire up the app.
         time_last_shaken = System.currentTimeMillis() - SHAKE_TIME_DIFFERENTIAL;
@@ -110,10 +114,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return;
         }
         time_last_shaken = currentTime;
+        moveAnimation((ImageView) findViewById(R.id.imageViewWholeEightBall));
+        //moveAnimation((ImageView) findViewById(R.id.imageViewCenterEight));
+        moveAnimation((ImageView) findViewById(R.id.imageViewBlueInside));
 
         ImageView image = (ImageView) findViewById(R.id.imageViewCenterEight);
         Animation animation =
-                AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_out);
+                AnimationUtils.loadAnimation(getApplicationContext(), R.anim.shake_and_fade_out);
         image.startAnimation(animation);
         image.setVisibility(View.INVISIBLE);
         textAppear();
@@ -218,7 +225,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 float speed = Math.abs(x + y +z - last_x - last_y - last_z)/diffTime * 10000;
                 if(speed > SHAKE_THRESHOLD){
-                    View view = (View) findViewById(R.id.imageViewCenterEight);
+                    View view = findViewById(R.id.imageViewCenterEight);
                     fadeOutImage(view);
                 }
 
@@ -238,5 +245,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void startSpannableActivity(View view){
         Intent intent = new Intent(this, SpannableText.class);
         startActivity(intent);
+    }
+
+    //TODO (11) Make this shake dynamic based on how the user shakes their phone.
+    //If they shake it up and down move the images up and down, possibly even diagonally [or multi direction]
+    //this would probably make the shake.xml files obsolete
+    public void moveAnimation(View view)
+    {
+        ImageView image = (ImageView) view;
+        Animation animation =
+                AnimationUtils.loadAnimation(getApplicationContext(), R.anim.shake_left_and_right);
+        image.startAnimation(animation);
     }
 }
