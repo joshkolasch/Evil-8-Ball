@@ -25,7 +25,7 @@ public class SpannableText extends AppCompatActivity {
 
         String fillString = "Try Again Later";
 
-        //TODO (2) this is where I need to do the spannable text stuff
+        //Complete TODO (2) this is where I need to do the spannable text stuff
         SpannableString evenString = new SpannableString(fillString);
         SpannableString oddString = new SpannableString(fillString);
 

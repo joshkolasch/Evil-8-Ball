@@ -8,6 +8,7 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Handler;
+import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
@@ -37,6 +38,9 @@ Note: Handlers were replaced with a fade_in_text_even.xml with a startOffset
 setting up a delay for a function using Handlers
 http://stackoverflow.com/questions/4111905/how-do-you-have-the-code-pause-for-a-couple-of-seconds-in-android
 
+Getting access to vibration features
+http://stackoverflow.com/questions/13950338/how-to-make-an-android-device-vibrate
+
  */
 public class MainActivity extends AppCompatActivity implements SensorEventListener{
 
@@ -56,6 +60,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final boolean IS_EVEN = true;
     private static final boolean NOT_EVEN = false;
 
+    //Complete TODO (10) use time_last_shaken and SHAKE_TIME_DIFFERENTIAL to make sure that user doesn't reactivate the response
+    //until they've seen a response. This is basically a time buffer between responses.
+    private static long time_last_shaken;
+    private static final int SHAKE_TIME_DIFFERENTIAL = 3000;
+
     //TODO (4) create a Contract class to populate this array from a database?
     private final String[] phrases = new String[]{"That's not gonna fuckin happen.", "Fuck if i know", "Shit happens", "Suck it up buttercup", "For fucks sake, yes!"};
 
@@ -72,6 +81,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mOddTextView = (TextView) findViewById(R.id.textViewCenterOdd);
         mEvenTextView.setVisibility(View.INVISIBLE);
         mOddTextView.setVisibility(View.INVISIBLE);
+
+        //this ensures the user won't be delayed the first time they fire up the app.
+        time_last_shaken = System.currentTimeMillis() - SHAKE_TIME_DIFFERENTIAL;
+
+        //TODO (8) use sharedPreference to store settings values
+        //TODO (9) Load sharedPreference
+        //Follow Preferences->Seting up the Settings Activity from Udacity
     }
 
     protected void onPause(){
@@ -88,6 +104,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Consider removing the imageView instance and pass it in from an earlier function
     //OnClick component set up in activity_main.xml
     public void fadeOutImage(View view){
+
+        long currentTime = System.currentTimeMillis();
+        if(currentTime - time_last_shaken < SHAKE_TIME_DIFFERENTIAL){
+            return;
+        }
+        time_last_shaken = currentTime;
+
         ImageView image = (ImageView) findViewById(R.id.imageViewCenterEight);
         Animation animation =
                 AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade_out);
@@ -96,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textAppear();
     }
 
+    //TODO (6) make the app behave differently based on whether the app is tapped or shaken
+    //tap should not activate vibration
     public void textAppear(){
 
         //TODO (3) create a function to return a string that will be used in this function
@@ -127,6 +152,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mEvenTextView.setText(evenString);
         mOddTextView.setText(oddString);
 
+        //TODO (7) encapsulate this in an if statement that checks user vibration settings
+        Vibrator vibrator = (Vibrator) getApplicationContext().getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(300);
+        
         fadeInText(IS_EVEN);
         fadeInText(NOT_EVEN);
         mOddTextView.bringToFront();
