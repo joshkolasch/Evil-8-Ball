@@ -2,6 +2,8 @@ package com.example.venom.a8_ballanimation;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -19,6 +21,10 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.venom.a8_ballanimation.data.DatabaseUtil;
+import com.example.venom.a8_ballanimation.data.EightballContract;
+import com.example.venom.a8_ballanimation.data.EightballDbHelper;
 
 import org.w3c.dom.Text;
 
@@ -67,8 +73,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //TODO (12) create variables for the imageViews - they're used repeatedly in the activity
 
-    //TODO (4) create a Contract class to populate this array from a database?
-    private final String[] phrases = new String[]{"That's not gonna fuckin happen.", "Fuck if i know", "Shit happens", "Suck it up buttercup", "For fucks sake, yes!"};
+    //Complete TODO (4) create a Contract class to populate this array from a database?
+    //private final String[] phrases = new String[]{"That's not gonna fuckin happen.", "Fuck if i know", "Shit happens", "Suck it up buttercup", "For fucks sake, yes!"};
+    private SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +98,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //TODO (8) use sharedPreference to store settings values
         //TODO (9) Load sharedPreference
-        //Follow Preferences->Seting up the Settings Activity from Udacity
+        //Follow Preferences->Setting up the Settings Activity from Udacity
+
+        EightballDbHelper dbHelper = new EightballDbHelper(this);
+        mDb = dbHelper.getReadableDatabase();
+        DatabaseUtil.populateDatabase(mDb);
     }
 
     protected void onPause(){
@@ -130,12 +141,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //tap should not activate vibration
     public void textAppear(){
 
-        //TODO (3) create a function to return a string that will be used in this function
+        //Complete TODO (3) create a function to return a string that will be used in this function
         //String fillText = "Try Again Later";
 
-        Random random = new Random();
+        /*Random random = new Random();
         int rand = random.nextInt(phrases.length);
-        String fillText = phrases[rand];
+        String fillText = phrases[rand];*/
+        String fillText = getAnswer();
 
         //Completed (2) this is where I need to do the spannable text stuff
         SpannableString evenString = new SpannableString(fillText);
@@ -242,6 +254,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+    //This function is depracated from when I was testing the SpannableText variables
     public void startSpannableActivity(View view){
         Intent intent = new Intent(this, SpannableText.class);
         startActivity(intent);
@@ -257,4 +270,34 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 AnimationUtils.loadAnimation(getApplicationContext(), R.anim.shake_left_and_right);
         image.startAnimation(animation);
     }
+
+    //TODO (19) Consider making a private Cursor variable that gets set to the database once.
+    //From there have the cursor move to a particular index based on the rand() function
+    //This should be faster than querying the entire database everytime
+    //WARNING: cursor should change everytime the CATEGORY is changed.
+    //Also, make sure to only query things based on what category is chosen.
+    private String getAnswer(){
+
+        String[] currentCategory = new String[] {"Default"};
+        String answer;
+
+        //query of database WHERE the Category is currentCategory, ORDERED BY Timestamp
+        Cursor cursor = mDb.query(
+                EightballContract.EightballEntry.TABLE_NAME,
+                null,
+                EightballContract.EightballEntry.COLUMN_CATEGORY + " = ?",
+                currentCategory,
+                null,
+                null,
+                EightballContract.EightballEntry.COLUMN_TIMESTAMP);
+
+        Random random = new Random();
+        int rand = random.nextInt(cursor.getCount());
+        int answerIndex = cursor.getColumnIndex(EightballContract.EightballEntry.COLUMN_ANSWER);
+        cursor.moveToPosition(rand);
+        answer = cursor.getString(answerIndex);
+
+        return answer;
+    }
+
 }
