@@ -1,5 +1,6 @@
 package com.example.venom.a8_ballanimation;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -9,18 +10,21 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Vibrator;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.venom.a8_ballanimation.data.DatabaseUtil;
 import com.example.venom.a8_ballanimation.data.EightballContract;
@@ -28,6 +32,7 @@ import com.example.venom.a8_ballanimation.data.EightballDbHelper;
 
 import org.w3c.dom.Text;
 
+import java.util.List;
 import java.util.Random;
 
 /*
@@ -76,6 +81,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Complete TODO (4) create a Contract class to populate this array from a database?
     //private final String[] phrases = new String[]{"That's not gonna fuckin happen.", "Fuck if i know", "Shit happens", "Suck it up buttercup", "For fucks sake, yes!"};
     private SQLiteDatabase mDb;
+    private static final int LOADER_ID = 0;
+    private static final String TAG = MainActivity.class.getSimpleName();
+    private static Cursor mCursor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,9 +108,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         //TODO (9) Load sharedPreference
         //Follow Preferences->Setting up the Settings Activity from Udacity
 
-        EightballDbHelper dbHelper = new EightballDbHelper(this);
+        /*EightballDbHelper dbHelper = new EightballDbHelper(this);
         mDb = dbHelper.getReadableDatabase();
         DatabaseUtil.populateDatabase(mDb);
+        */
+        /*EightballDbHelper dbHelper = new EightballDbHelper(this);
+        mDb = dbHelper.getReadableDatabase();
+        populateDatabase();*/
+
+        mCursor = initialQuery();
+        //deleteDatabase();
+        if(mCursor.getCount() < 1)
+        {
+            populateDatabase();
+        }
+
     }
 
     protected void onPause(){
@@ -217,7 +237,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
 
         //tv.setAlpha((float) 0);
-
     }
 
     @Override
@@ -246,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 last_z = z;
             }
         }
-
     }
 
     @Override
@@ -278,26 +296,86 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Also, make sure to only query things based on what category is chosen.
     private String getAnswer(){
 
+        //TODO (22) Remove this hardcoded string and replace it with a global variable when more categories become available
         String[] currentCategory = new String[] {"Default"};
         String answer;
 
-        //query of database WHERE the Category is currentCategory, ORDERED BY Timestamp
-        Cursor cursor = mDb.query(
+        /*Cursor cursor = mDb.query(
                 EightballContract.EightballEntry.TABLE_NAME,
                 null,
                 EightballContract.EightballEntry.COLUMN_CATEGORY + " = ?",
                 currentCategory,
                 null,
                 null,
+                EightballContract.EightballEntry.COLUMN_TIMESTAMP);*/
+
+        //query of database WHERE the Category is currentCategory, ORDERED BY Timestamp
+        Cursor cursor = getContentResolver().query(
+                EightballContract.EightballEntry.CONTENT_URI,
+                null,
+                EightballContract.EightballEntry.COLUMN_CATEGORY + " = ?",
+                currentCategory,
                 EightballContract.EightballEntry.COLUMN_TIMESTAMP);
 
         Random random = new Random();
         int rand = random.nextInt(cursor.getCount());
         int answerIndex = cursor.getColumnIndex(EightballContract.EightballEntry.COLUMN_ANSWER);
-        cursor.moveToPosition(rand);
-        answer = cursor.getString(answerIndex);
 
+        //this function returns false if the cursor was unable to move to the requested position
+        //therefore, we need to fail gracefully
+        if(!cursor.moveToPosition(rand)){
+            return "Try again later";
+        }
+
+        answer = cursor.getString(answerIndex);
         return answer;
     }
 
+    //TODO (21) This is currently adding 7 more entries every time the app is created.
+    //After finishing query, make sure to query the total number of answers and compare it to DatabaseUtil.getNumAnswers()
+    //if there are less in the database than there are in getNumAnswers, then populate the db
+    private void populateDatabase(){
+        List<ContentValues> list = DatabaseUtil.getDefaultValues();
+
+        for(ContentValues contentValues:list){
+            Uri uri = getContentResolver().insert(EightballContract.EightballEntry.CONTENT_URI, contentValues);
+            if(uri != null){
+                Toast.makeText(getBaseContext(), uri.toString(), Toast.LENGTH_LONG).show();
+            }
+        }
+        return;
+    }
+
+    public Cursor initialQuery() {
+        Cursor returnCursor;
+
+        try {
+            returnCursor = getContentResolver().query(
+                    EightballContract.EightballEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    null);
+        }catch(Exception e){
+            Log.e(TAG, "Failed initial query");
+            e.printStackTrace();
+            return null;
+        }
+        return returnCursor;
+    }
+
+    public int deleteDatabase(){
+        int rowsDeleted = 0;
+        for(int i = 0; i < mCursor.getCount(); i++){
+            String id = String.valueOf(i);
+            Uri uri = EightballContract.EightballEntry.CONTENT_URI;
+            uri.buildUpon().appendPath(id).build();
+            rowsDeleted += getContentResolver().delete(
+                    uri,
+                    null,
+                    null
+            );
+        }
+        return rowsDeleted;
+    }
 }

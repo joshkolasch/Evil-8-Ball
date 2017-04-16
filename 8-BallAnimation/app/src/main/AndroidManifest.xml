@@ -20,6 +20,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".SpannableText"></activity>
+        <provider
+            android:authorities="com.example.venom.a8_ballanimation"
+            android:name="com.example.venom.a8_ballanimation.data.EightballContentProvider"
+            android:exported="true"/>
     </application>
 
 </manifest>

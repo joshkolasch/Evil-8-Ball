@@ -14,9 +14,9 @@ import com.example.venom.a8_ballanimation.data.EightballContract.EightballEntry;
 //TODO (17) Create a Unit Test for this class. Example on Udacity Lesson 7-9
 public class EightballDbHelper extends SQLiteOpenHelper {
 
-    private static final String DATABASE_NAME = "eightball.db";
+    private static final String DATABASE_NAME = "responses.db";
 
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public EightballDbHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
